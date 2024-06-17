@@ -1,10 +1,11 @@
+import Chat from './containers/Chat/Chat';
 
 const App = () => {
     return (
         <>
-            Hello world
+          <Chat />
         </>
     )
 };
 
-export default App
+export default App;
