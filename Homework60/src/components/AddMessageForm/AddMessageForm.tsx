@@ -1,18 +1,24 @@
-import {MessageType} from '../../types';
 import React, {ChangeEvent, useState} from 'react';
 import {Button, FormControl, OutlinedInput, TextField} from '@mui/material';
 
-interface AddMessageProps {
-  onSubmit: (message: MessageType) => void;
+const url = 'http://146.185.154.90:8000/messages';
 
-}
+const postData = async (url: string, message: string, author: string) => {
+  const data = new URLSearchParams();
+  data.set('message', message);
+  data.set('author', author);
 
-const AddMessageForm: React.FC<AddMessageProps> = ({onSubmit}) => {
+  await fetch(url, {
+    method: 'post',
+    body: data,
+  });
+};
+
+const AddMessageForm = () => {
 
   const [messageData, setMessageData] = useState({
     message: '',
     author: '',
-    datetime: '',
   });
 
   const onFieldChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,29 +32,40 @@ const AddMessageForm: React.FC<AddMessageProps> = ({onSubmit}) => {
     });
   };
 
-  const onFormSubmit = (event: React.FormEvent) => {
+  const onFormSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    try {
+      await postData(url, messageData.message, messageData.author);
 
-    const message: MessageType = {
-      ...messageData,
-      id: Math.random().toString(),
-      datetime: new Date().toLocaleString('ru-RU', {dateStyle: "medium", timeStyle: "medium"}),
-    };
-    onSubmit(message);
-    setMessageData({
-      message: '',
-      author: '',
-      datetime: ''
-    });
+      setMessageData({
+        message: '',
+        author: '',
+      });
+
+    } catch (error) {
+      console.error('Network Error:', error);
+    }
   };
 
   return (
-    <form onSubmit={onFormSubmit} style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+    <form onSubmit={onFormSubmit}
+          style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
       <FormControl sx={{width: '50ch', marginRight: '2rem'}}>
-        <TextField name="message" fullWidth label="Enter your message" onChange={onFieldChange}/>
+        <TextField
+          name="message"
+          fullWidth
+          label="Enter your message"
+          value={messageData.message}
+          onChange={onFieldChange}
+        />
       </FormControl>
       <FormControl sx={{width: '20ch', marginRight: '2rem'}}>
-        <OutlinedInput name="author" placeholder="Name" onChange={onFieldChange} required/>
+        <OutlinedInput
+          name="author"
+          placeholder="Name"
+          value={messageData.author}
+          onChange={onFieldChange}
+          required/>
       </FormControl>
       <Button variant="contained" type="submit">Send</Button>
     </form>
