@@ -22,7 +22,7 @@ const Message: React.FC<Props> = ({message, author, datetime}) => {
         {message}
       </Typography>
       <Typography variant="body2" color="textSecondary" sx={{ textAlign: 'right' }}>
-        {datetime}
+        {new Date(datetime).toLocaleString('ru-RU', {dateStyle: "medium", timeStyle: "medium"})}
       </Typography>
     </Box>
   );
