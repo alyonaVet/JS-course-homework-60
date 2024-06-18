@@ -1,49 +1,45 @@
 import {useEffect, useState} from 'react';
 import {MessageType} from '../../types';
 import AddMessageForm from '../../components/AddMessageForm/AddMessageForm';
-import {Stack} from '@mui/material';
+import {Backdrop, CircularProgress, Stack} from '@mui/material';
 import Message from '../../components/Message/Message';
 
 
 const Chat = () => {
   const [messages, setMessages] = useState<MessageType[]>([]);
+  const [preload, setPreload] = useState<boolean>(true);
 
   const getMessages = async (lastMessage?: MessageType) => {
+    try {
+      const lastMessageDatetime = !lastMessage ? '' : `?datetime=${lastMessage.datetime}`;
+      const url = `http://146.185.154.90:8000/messages${lastMessageDatetime}`;
 
-    console.log(lastMessage);
-
-    const suffix = !lastMessage ? '' : `?datetime=${lastMessage.datetime}`;
-
-    const url = `http://146.185.154.90:8000/messages${suffix}`;
-
-    const response = await fetch(url);
-    if (response.ok) {
-      const messagesData = await response.json() as MessageType[];
-      const newMessages = messagesData.map((message) => ({
-        _id: message._id,
-        message: message.message,
-        author: message.author,
-        datetime: message.datetime,
-      }));
-
-      setMessages([...messages, ...newMessages]);
+      const response = await fetch(url);
+      if (response.ok) {
+        const messagesData: MessageType[] = await response.json();
+        const newMessages = messagesData.map((message) => ({
+          _id: message._id,
+          message: message.message,
+          author: message.author,
+          datetime: message.datetime,
+        }));
+        setMessages([...messages, ...newMessages]);
+      }
+    } catch (error) {
+      console.error('Network Error:', error);
+    } finally {
+      setPreload(false);
     }
   };
 
   useEffect(() => {
-
     void getMessages();
-
   }, []);
 
   useEffect(() => {
-
     const lastMessage: MessageType = messages[messages.length - 1];
-
-    const interval = setInterval(() => getMessages(lastMessage), 5000);
-
+    const interval = setInterval(() => getMessages(lastMessage), 3000);
     return () => clearInterval(interval);
-
   }, [messages]);
 
   return (
@@ -59,6 +55,9 @@ const Chat = () => {
           />;
         })}
       </Stack>
+      <Backdrop sx={{color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1}} open={preload}>
+        <CircularProgress color="inherit"/>
+      </Backdrop>
     </>
   );
 };
